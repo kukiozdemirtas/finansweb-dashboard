@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portföy Simülasyonu</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080b0f;--bg2:#0e1218;--bg3:#141a22;--bg4:#1a2130;
+  --border:#1c2430;--border2:#243040;
+  --green:#00d48a;--green-d:rgba(0,212,138,0.1);
+  --amber:#f0a020;--amber-d:rgba(240,160,32,0.1);
+  --red:#ff4060;--red-d:rgba(255,64,96,0.1);
+  --blue:#3a9eff;--blue-d:rgba(58,158,255,0.1);
+  --purple:#9b7fea;--purple-d:rgba(155,127,234,0.1);
+  --text:#dce8f5;--text2:#8a9ab5;--text3:#4a5a70;
+  --mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.013) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.013) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase}
+h1{font-family:var(--mono);font-size:20px;color:var(--amber);letter-spacing:-0.5px;margin-top:4px}
+.hd-right{text-align:right;font-family:var(--mono)}
+#clock{font-size:24px;font-weight:700;letter-spacing:2px;color:var(--text)}
+#datef{font-size:10px;color:var(--text3);letter-spacing:1px;margin-top:2px;text-transform:uppercase}
+.nav{display:flex;gap:8px;margin-bottom:20px}
+.nav a{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;border:1px solid var(--border);color:var(--text2);text-decoration:none;text-transform:uppercase;transition:all .15s}
+.nav a:hover{border-color:var(--border2);color:var(--text)}
+.nav a.active{background:var(--amber-d);border-color:rgba(240,160,32,0.3);color:var(--amber)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.g1{margin-bottom:12px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.badge{font-family:var(--mono);font-size:8px;padding:2px 7px;border-radius:20px;letter-spacing:1px}
+.bda{background:var(--amber-d);color:var(--amber);border:1px solid rgba(240,160,32,0.2)}
+.bdb{background:var(--blue-d);color:var(--blue);border:1px solid rgba(58,158,255,0.2)}
+.bdg{background:var(--green-d);color:var(--green);border:1px solid rgba(0,212,138,0.2)}
+.bdr{background:var(--red-d);color:var(--red);border:1px solid rgba(255,64,96,0.2)}
+.bdp{background:var(--purple-d);color:var(--purple);border:1px solid rgba(155,127,234,0.2)}
+.sl{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin:18px 0 8px 2px}
+.big-num{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--text)}
+.pct{font-family:var(--mono);font-size:14px;font-weight:700}
+.pct.up{color:var(--green)}.pct.dn{color:var(--red)}.pct.nt{color:var(--text3)}
+
+/* POSITIONS */
+.pos-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:4px;border:1px solid transparent;transition:border-color .15s}
+.pos-row:hover{border-color:var(--border2)}
+.pos-asset{font-size:12px;font-weight:500;color:var(--text);flex:1}
+.pos-alloc{font-family:var(--mono);font-size:11px;color:var(--text2);min-width:90px;text-align:right}
+.pos-pct-col{font-family:var(--mono);font-size:11px;min-width:55px;text-align:right}
+.pos-bar-wrap{width:60px;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.pos-bar-fill{height:100%;border-radius:3px;transition:width .4s}
+
+/* BUTTONS */
+.btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:7px 14px;border-radius:6px;cursor:pointer;text-transform:uppercase;border:1px solid var(--border);transition:all .15s;background:var(--bg3);color:var(--text2)}
+.btn:hover{border-color:var(--border2);color:var(--text)}
+.btn-a{background:var(--amber-d);border-color:rgba(240,160,32,0.3);color:var(--amber)}
+.btn-b{background:var(--blue-d);border-color:rgba(58,158,255,0.3);color:var(--blue)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;width:420px;max-width:90vw}
+.modal h3{font-family:var(--mono);font-size:13px;color:var(--text);margin-bottom:16px;letter-spacing:1px}
+.modal label{display:block;font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;margin-top:12px}
+.modal select,.modal input[type=number]{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+.modal select:focus,.modal input:focus{border-color:var(--amber)}
+.modal-btns{display:flex;gap:8px;margin-top:18px}
+
+/* LOG */
+.log-entry{padding:9px 12px;background:var(--bg3);border-radius:7px;border-left:3px solid var(--border2)}
+.log-entry.claude{border-left-color:var(--blue)}
+.log-entry.user{border-left-color:var(--amber)}
+.log-entry.system{border-left-color:var(--green)}
+.log-who{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.log-entry.claude .log-who{color:var(--blue)}
+.log-entry.user .log-who{color:var(--amber)}
+.log-entry.system .log-who{color:var(--green)}
+.log-text{font-size:12px;color:var(--text2);line-height:1.6}
+.log-time{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:3px}
+.log-pnl{font-family:var(--mono);font-size:10px;margin-top:4px;display:flex;gap:12px}
+
+/* P&L TABLE */
+.pnl-table{width:100%;border-collapse:collapse}
+.pnl-table th{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--text3);text-transform:uppercase;padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.pnl-table td{font-family:var(--mono);font-size:11px;color:var(--text2);padding:7px 10px;border-bottom:1px solid var(--border)}
+.pnl-table tr:last-child td{border-bottom:none}
+.pnl-table td.up{color:var(--green)}
+.pnl-table td.dn{color:var(--red)}
+.pnl-table td.nt{color:var(--text3)}
+
+/* DATE FILTER */
+.date-filter{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.date-filter input[type=date]{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none}
+.date-filter input[type=date]:focus{border-color:var(--amber)}
+
+/* COMPARE BAR */
+.compare-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0}
+.compare-fill{height:100%;border-radius:4px;transition:width .5s ease}
+
+/* LOADING */
+.loading-bar{height:2px;background:var(--bg4);border-radius:2px;overflow:hidden;display:none;margin:8px 0}
+.loading-bar.active{display:block}
+.loading-bar::after{content:'';display:block;height:100%;background:linear-gradient(90deg,transparent,var(--blue),transparent);animation:scan 1.2s ease-in-out infinite}
+@keyframes scan{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;margin-right:5px;vertical-align:middle}
+footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between}
+.ft{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px}
+@media(max-width:768px){.g2,.g3{grid-template-columns:1fr}.pos-bar-wrap{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="eyebrow">TÜRKİYE · PORTFÖY SİMÜLASYONU</div>
+    <h1>// PORTFOLIO <span style="color:var(--text2)">GAME</span></h1>
+  </div>
+  <div class="hd-right">
+    <div id="clock">--:--:--</div>
+    <div id="datef">---</div>
+  </div>
+</header>
+
+<div class="nav">
+  <a href="index.html">← Dashboard</a>
+  <a href="portfolio.html" class="active">Portföy Oyunu</a>
+</div>
+
+<!-- ÖZET -->
+<div class="sl">→ Genel Durum — Gün <span id="dayNum">1</span></div>
+<div class="g3">
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--amber)"></div>Senin Portföyün<span class="badge bda" style="margin-left:auto">SEN</span></div>
+    <div class="big-num" id="userTotal">1.000.000 TL</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+      <span class="pct nt" id="userPct">+0.00%</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--text3)" id="userPnl">+0 TL</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--blue)"></div>Claude'un Portföyü<span class="badge bdb" style="margin-left:auto">AI</span></div>
+    <div class="big-num" id="claudeTotal">1.000.000 TL</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+      <span class="pct nt" id="claudePct">+0.00%</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--text3)" id="claudePnl">+0 TL</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--green)"></div>Karşılaştırma</div>
+    <div class="compare-bar"><div class="compare-fill" id="compareBar" style="width:50%;background:var(--text3)"></div></div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text3)">
+      <span>Sen</span><span id="compareLabel">Eşit</span><span>Claude</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:8px">Başlangıç: 1.000.000 TL · <span id="startDateLabel">—</span></div>
+  </div>
+</div>
+
+<!-- POZİSYONLAR -->
+<div class="g2">
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--amber)"></div>Senin Pozisyonları — Dağılım</div>
+    <div id="userPositions"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-a" onclick="openTradeModal()">Pozisyon Al / Sat</button>
+      <button class="btn" onclick="resetUser()">Sıfırla</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--blue)"></div>Claude'un Pozisyonları — Dağılım<span class="badge bdb" style="margin-left:auto" id="claudeUpdateBadge">—</span></div>
+    <div id="claudePositions"></div>
+    <div class="loading-bar" id="claudeLoading"></div>
+    <div style="margin-top:4px;font-size:11px;color:var(--text3);font-style:italic;line-height:1.5" id="claudeReasoning"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-b" onclick="askClaudeToUpdate()">Claude'u Güncelle</button>
+    </div>
+  </div>
+</div>
+
+<!-- GÜNLÜK P&L LOG -->
+<div class="sl">→ Günlük Kar / Zarar Geçmişi</div>
+<div class="card g1">
+  <div class="card-title"><div class="dot" style="background:var(--green)"></div>P&L Logu — Tarih Seç<span class="badge bdg" style="margin-left:auto">GEÇMİŞ</span></div>
+  <div class="date-filter">
+    <input type="date" id="dateFrom" />
+    <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">→</span>
+    <input type="date" id="dateTo" />
+    <button class="btn" onclick="renderPnlTable()" style="padding:6px 12px">Filtrele</button>
+    <button class="btn" onclick="clearDateFilter()" style="padding:6px 12px">Tümü</button>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="pnl-table" id="pnlTable">
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Saat</th>
+          <th>Kim</th>
+          <th>İşlem</th>
+          <th>Sen %</th>
+          <th>Sen TL</th>
+          <th>Claude %</th>
+          <th>Claude TL</th>
+          <th>Önde</th>
+        </tr>
+      </thead>
+      <tbody id="pnlBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- KARAR LOGU -->
+<div class="sl">→ Karar & Yorum Logu</div>
+<div class="card g1">
+  <div class="card-title"><div class="dot" style="background:var(--purple)"></div>İşlem Günlüğü<span class="badge bdp" style="margin-left:auto">LOG</span></div>
+  <div id="logContainer" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:5px"></div>
+</div>
+
+<footer>
+  <div class="ft"><span class="live"></span>PORTFÖY SİMÜLASYONU · GERÇEK PARA DEĞİLDİR</div>
+  <div class="ft">AI KARAR: CLAUDE HAIKU</div>
+</footer>
+</div>
+
+<!-- İŞLEM MODALI -->
+<div class="modal-overlay" id="tradeModal">
+  <div class="modal">
+    <h3>// POZİSYON AL / SAT</h3>
+    <label>Varlık</label>
+    <select id="tradeAsset">
+      <option value="Altın">Altın</option>
+      <option value="Gümüş">Gümüş</option>
+      <option value="USD/TRY">USD/TRY</option>
+      <option value="BIST100">BIST100</option>
+      <option value="Bitcoin">Bitcoin</option>
+      <option value="Ethereum">Ethereum</option>
+      <option value="Brent Petrol">Brent Petrol</option>
+      <option value="Fon">Fon (Karma)</option>
+    </select>
+    <label>İşlem</label>
+    <select id="tradeAction">
+      <option value="buy">Al</option>
+      <option value="sell">Sat</option>
+    </select>
+    <label>Miktar (TL)</label>
+    <input type="number" id="tradeAmount" placeholder="100000" min="1000" step="1000" />
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:8px">Nakit: <span id="availableCash">1.000.000</span> TL</div>
+    <div class="modal-btns">
+      <button class="btn btn-a" onclick="executeTrade()" style="flex:1">Onayla</button>
+      <button class="btn" onclick="closeTradeModal()" style="flex:1">İptal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const INITIAL = 1000000;
+const COLORS = ['var(--amber)','var(--blue)','var(--green)','var(--purple)','var(--red)','#22d3ee','#f472b6','#a3e635'];
+
+// ─── STATE ────────────────────────────────────────────────────────
+function loadState() {
+  try {
+    const s = localStorage.getItem('portfolio_sim_v3');
+    return s ? JSON.parse(s) : null;
+  } catch(e) { return null; }
+}
+function initState() {
+  return {
+    startDate: new Date().toISOString().split('T')[0],
+    day: 1,
+    user: { cash: INITIAL, positions: [], totalValue: INITIAL },
+    claude: { cash: INITIAL, positions: [], totalValue: INITIAL, lastUpdate: null, reasoning: null },
+    log: [],
+    pnlLog: []
+  };
+}
+function saveState() { localStorage.setItem('portfolio_sim_v3', JSON.stringify(state)); }
+
+let state = loadState() || initState();
+document.getElementById('startDateLabel').textContent = state.startDate;
+
+// ─── CLOCK ────────────────────────────────────────────────────────
+function tickClock() {
+  const n = new Date();
+  const days = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+  const mo = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+  document.getElementById('clock').textContent = n.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('datef').textContent = `${days[n.getDay()]} · ${n.getDate()} ${mo[n.getMonth()]} ${n.getFullYear()}`;
+}
+tickClock(); setInterval(tickClock, 1000);
+
+// ─── HELPERS ──────────────────────────────────────────────────────
+function fmt(n) { return Math.round(n).toLocaleString('tr-TR'); }
+function fmtPct(n) { return (n >= 0 ? '+' : '') + n.toFixed(2) + '%'; }
+function pctClass(n) { return n > 0.01 ? 'up' : n < -0.01 ? 'dn' : 'nt'; }
+function nowTime() { return new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}); }
+function todayDate() { return new Date().toISOString().split('T')[0]; }
+
+// ─── RENDER POSITIONS ─────────────────────────────────────────────
+function renderPositions(who) {
+  const p = state[who];
+  const total = p.totalValue;
+  const containerEl = document.getElementById(who === 'user' ? 'userPositions' : 'claudePositions');
+
+  const allItems = [];
+  if (p.cash > 0) allItems.push({ asset: 'Nakit', value: p.cash, pct: 0, invested: p.cash });
+  for (const pos of p.positions) allItems.push(pos);
+
+  let html = '';
+  allItems.forEach((item, i) => {
+    const allocPct = total > 0 ? (item.asset === 'Nakit' ? item.value : item.currentValue || item.value) / total * 100 : 0;
+    const gainPct = item.asset === 'Nakit' ? 0 : ((item.currentValue - item.invested) / item.invested * 100) || 0;
+    const valDisplay = item.asset === 'Nakit' ? item.value : item.currentValue;
+    const gc = pctClass(gainPct);
+    const color = item.asset === 'Nakit' ? 'var(--text3)' : COLORS[i % COLORS.length];
+    html += `<div class="pos-row">
+      <div class="pos-bar-wrap"><div class="pos-bar-fill" style="width:${Math.min(100,allocPct).toFixed(1)}%;background:${color}"></div></div>
+      <span class="pos-asset">${item.asset}</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text3);min-width:38px;text-align:right">${allocPct.toFixed(1)}%</span>
+      <span class="pos-alloc">${fmt(valDisplay)} TL</span>
+      <span class="pos-pct-col ${gc}">${item.asset === 'Nakit' ? '—' : fmtPct(gainPct)}</span>
+    </div>`;
+  });
+  containerEl.innerHTML = html;
+}
+
+function renderSummary() {
+  const uPct = (state.user.totalValue - INITIAL) / INITIAL * 100;
+  const cPct = (state.claude.totalValue - INITIAL) / INITIAL * 100;
+  const uPnl = state.user.totalValue - INITIAL;
+  const cPnl = state.claude.totalValue - INITIAL;
+
+  document.getElementById('userTotal').textContent = fmt(state.user.totalValue) + ' TL';
+  document.getElementById('userPct').textContent = fmtPct(uPct);
+  document.getElementById('userPct').className = 'pct ' + pctClass(uPct);
+  document.getElementById('userPnl').textContent = (uPnl >= 0 ? '+' : '') + fmt(uPnl) + ' TL';
+
+  document.getElementById('claudeTotal').textContent = fmt(state.claude.totalValue) + ' TL';
+  document.getElementById('claudePct').textContent = fmtPct(cPct);
+  document.getElementById('claudePct').className = 'pct ' + pctClass(cPct);
+  document.getElementById('claudePnl').textContent = (cPnl >= 0 ? '+' : '') + fmt(cPnl) + ' TL';
+
+  document.getElementById('dayNum').textContent = state.day;
+  if (state.claude.lastUpdate) document.getElementById('claudeUpdateBadge').textContent = state.claude.lastUpdate;
+  if (state.claude.reasoning) document.getElementById('claudeReasoning').textContent = '"' + state.claude.reasoning + '"';
+
+  const bar = document.getElementById('compareBar');
+  const label = document.getElementById('compareLabel');
+  if (Math.abs(uPct - cPct) < 0.01) {
+    bar.style.width = '50%'; bar.style.background = 'var(--text3)'; label.textContent = 'Eşit';
+  } else if (uPct > cPct) {
+    bar.style.width = Math.min(90, 50 + (uPct - cPct) * 5) + '%';
+    bar.style.background = 'var(--amber)'; label.textContent = 'Sen öndesin ▲';
+  } else {
+    bar.style.width = Math.max(10, 50 - (cPct - uPct) * 5) + '%';
+    bar.style.background = 'var(--blue)'; label.textContent = '▲ Claude önde';
+  }
+}
+
+function renderLog() {
+  const entries = [...state.log].reverse().slice(0, 30);
+  document.getElementById('logContainer').innerHTML = entries.map(e => `
+    <div class="log-entry ${e.who}">
+      <div class="log-who">${e.who === 'claude' ? 'claude ai' : e.who === 'user' ? 'sen' : 'sistem'}</div>
+      <div class="log-text">${e.text}</div>
+      <div class="log-time">${e.date} ${e.time}</div>
+    </div>`).join('') || '<div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:8px">Henüz işlem yok.</div>';
+}
+
+function renderPnlTable() {
+  const from = document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').value;
+  let rows = state.pnlLog;
+  if (from) rows = rows.filter(r => r.date >= from);
+  if (to) rows = rows.filter(r => r.date <= to);
+
+  const tbody = document.getElementById('pnlBody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:16px">Bu aralıkta kayıt yok.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...rows].reverse().map(r => {
+    const winner = r.userPct > r.claudePct ? '↑ Sen' : r.claudePct > r.userPct ? '↑ Claude' : '—';
+    const winnerCls = r.userPct > r.claudePct ? 'up' : r.claudePct > r.userPct ? '' : 'nt';
+    return `<tr>
+      <td>${r.date}</td>
+      <td>${r.time}</td>
+      <td>${r.who === 'claude' ? 'Claude' : r.who === 'user' ? 'Sen' : 'Sistem'}</td>
+      <td>${r.action}</td>
+      <td class="${pctClass(r.userPct)}">${fmtPct(r.userPct)}</td>
+      <td class="${pctClass(r.userPnl)}">${r.userPnl >= 0 ? '+' : ''}${fmt(r.userPnl)}</td>
+      <td class="${pctClass(r.claudePct)}">${fmtPct(r.claudePct)}</td>
+      <td class="${pctClass(r.claudePnl)}">${r.claudePnl >= 0 ? '+' : ''}${fmt(r.claudePnl)}</td>
+      <td class="${winnerCls}">${winner}</td>
+    </tr>`;
+  }).join('');
+}
+
+function clearDateFilter() {
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  renderPnlTable();
+}
+
+function renderAll() {
+  renderSummary();
+  renderPositions('user');
+  renderPositions('claude');
+  renderLog();
+  renderPnlTable();
+}
+
+// ─── PNL SNAPSHOT ────────────────────────────────────────────────
+function addPnlSnapshot(who, action) {
+  const uPct = (state.user.totalValue - INITIAL) / INITIAL * 100;
+  const cPct = (state.claude.totalValue - INITIAL) / INITIAL * 100;
+  state.pnlLog.push({
+    date: todayDate(),
+    time: nowTime(),
+    who,
+    action,
+    userPct: uPct,
+    userPnl: state.user.totalValue - INITIAL,
+    claudePct: cPct,
+    claudePnl: state.claude.totalValue - INITIAL,
+    userTotal: state.user.totalValue,
+    claudeTotal: state.claude.totalValue
+  });
+  if (state.pnlLog.length > 200) state.pnlLog = state.pnlLog.slice(-200);
+}
+
+// ─── LOG ENTRY ────────────────────────────────────────────────────
+function addLog(who, text) {
+  state.log.push({ who, text, date: todayDate(), time: nowTime() });
+  if (state.log.length > 100) state.log = state.log.slice(-100);
+}
+
+// ─── İŞLEM MODALI ────────────────────────────────────────────────
+function openTradeModal() {
+  document.getElementById('tradeModal').classList.add('open');
+  document.getElementById('availableCash').textContent = fmt(state.user.cash);
+}
+function closeTradeModal() { document.getElementById('tradeModal').classList.remove('open'); }
+
+function executeTrade() {
+  const asset = document.getElementById('tradeAsset').value;
+  const action = document.getElementById('tradeAction').value;
+  const amount = parseInt(document.getElementById('tradeAmount').value);
+  if (!amount || amount < 1000) { alert('En az 1.000 TL giriniz.'); return; }
+  const p = state.user;
+
+  if (action === 'buy') {
+    if (amount > p.cash) { alert('Yeterli nakit yok.'); return; }
+    p.cash -= amount;
+    const ex = p.positions.find(x => x.asset === asset);
+    if (ex) { ex.invested += amount; ex.currentValue += amount; }
+    else p.positions.push({ asset, invested: amount, currentValue: amount });
+    addLog('user', `${asset} AL: ${fmt(amount)} TL`);
+    addPnlSnapshot('user', `${asset} AL ${fmt(amount)} TL`);
+  } else {
+    const pos = p.positions.find(x => x.asset === asset);
+    if (!pos) { alert('Bu varlıkta pozisyonun yok.'); return; }
+    const sellVal = Math.min(amount, pos.currentValue);
+    pos.currentValue -= sellVal;
+    pos.invested = Math.max(0, pos.invested - sellVal);
+    p.cash += sellVal;
+    if (pos.currentValue < 100) p.positions = p.positions.filter(x => x.asset !== asset);
+    addLog('user', `${asset} SAT: ${fmt(sellVal)} TL`);
+    addPnlSnapshot('user', `${asset} SAT ${fmt(sellVal)} TL`);
+  }
+
+  p.totalValue = p.cash + p.positions.reduce((s,x) => s + x.currentValue, 0);
+  saveState(); renderAll(); closeTradeModal();
+}
+
+function resetUser() {
+  if (!confirm('Senin portföyünü sıfırlamak istediğine emin misin?')) return;
+  state.user = { cash: INITIAL, positions: [], totalValue: INITIAL };
+  addLog('system', 'Kullanıcı portföyü sıfırlandı.');
+  addPnlSnapshot('system', 'Kullanıcı portföyü sıfırlandı');
+  saveState(); renderAll();
+}
+
+// ─── CLAUDE GÜNCELLEME ───────────────────────────────────────────
+async function askClaudeToUpdate() {
+  const lb = document.getElementById('claudeLoading');
+  lb.classList.add('active');
+  document.getElementById('claudeReasoning').textContent = 'Piyasalar araştırılıyor...';
+
+  const currentPos = state.claude.positions.length > 0
+    ? state.claude.positions.map(p => `${p.asset}: ${fmt(p.currentValue)} TL`).join(', ')
+    : 'Sadece nakit';
+
+  const prompt = `Sen bir portföy simülasyonunda yatırım kararları alan bir yapay zekasın. Başlangıç: 1.000.000 TL. Tamamen simülasyon.
+
+Güncel pozisyonlarım: ${currentPos} | Nakit: ${fmt(state.claude.cash)} TL
+
+Güncel küresel piyasa koşullarını web'den araştır. Sonra 1.000.000 TL'yi şu varlıklar arasında dağıt:
+Altın, Gümüş, USD/TRY, BIST100, Bitcoin, Ethereum, Brent Petrol, Fon, Nakit
+
+SADECE JSON döndür:
+{
+  "reasoning": "Neden bu dağılımı seçtiğini 2 cümle açıkla (Türkçe)",
+  "positions": [
+    { "asset": "Altın", "allocation_pct": 35 },
+    { "asset": "Nakit", "allocation_pct": 65 }
+  ]
+}
+Toplam allocation_pct tam 100 olmalı.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await resp.json();
+    const textBlocks = (data.content || []).filter(b => b.type === 'text');
+    let result = null;
+    for (let i = textBlocks.length - 1; i >= 0; i--) {
+      const match = textBlocks[i].text.match(/\{[\s\S]*\}/);
+      if (match) { try { result = JSON.parse(match[0]); break; } catch(e) {} }
+    }
+    if (!result) throw new Error('JSON bulunamadı');
+
+    state.claude.cash = 0;
+    state.claude.positions = [];
+    for (const pos of result.positions) {
+      const val = Math.round(INITIAL * pos.allocation_pct / 100);
+      if (pos.asset === 'Nakit') { state.claude.cash += val; }
+      else {
+        const ex = state.claude.positions.find(x => x.asset === pos.asset);
+        if (ex) { ex.currentValue += val; ex.invested += val; }
+        else state.claude.positions.push({ asset: pos.asset, invested: val, currentValue: val });
+      }
+    }
+    state.claude.totalValue = state.claude.cash + state.claude.positions.reduce((s,x) => s + x.currentValue, 0);
+    state.claude.lastUpdate = nowTime();
+    state.claude.reasoning = result.reasoning;
+
+    addLog('claude', result.reasoning);
+    addPnlSnapshot('claude', 'Portföy güncellendi');
+    saveState(); renderAll();
+
+  } catch (err) {
+    document.getElementById('claudeReasoning').textContent = 'Hata: ' + err.message;
+    addLog('system', 'Claude güncelleme hatası: ' + err.message);
+    renderLog();
+  } finally {
+    lb.classList.remove('active');
+  }
+}
+
+// ─── GÜN DEĞİŞİMİ ────────────────────────────────────────────────
+const today = todayDate();
+if (state.startDate !== today && state.pnlLog.length > 0) {
+  const lastDay = state.pnlLog[state.pnlLog.length - 1];
+  if (lastDay.date !== today) {
+    state.day++;
+    addLog('system', `Yeni gün: ${today} — Gün ${state.day}`);
+    addPnlSnapshot('system', 'Gün kapanışı');
+    saveState();
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────
+if (state.log.length === 0) {
+  addLog('system', 'Portföy simülasyonu başladı. Her iki portföy 1.000.000 TL ile başlıyor. Gerçek para değildir.');
+  addPnlSnapshot('system', 'Başlangıç');
+  saveState();
+}
+
+renderAll();
+</script>
+</body>
+</html>
