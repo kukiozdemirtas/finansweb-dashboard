@@ -499,47 +499,11 @@ async function askClaudeToUpdate() {
   lb.classList.add('active');
   document.getElementById('claudeReasoning').textContent = 'Piyasalar araştırılıyor...';
 
-  const currentPos = state.claude.positions.length > 0
-    ? state.claude.positions.map(p => `${p.asset}: ${fmt(p.currentValue)} TL`).join(', ')
-    : 'Sadece nakit';
-
-  const prompt = `Sen bir portföy simülasyonunda yatırım kararları alan bir yapay zekasın. Başlangıç: 1.000.000 TL. Tamamen simülasyon.
-
-Güncel pozisyonlarım: ${currentPos} | Nakit: ${fmt(state.claude.cash)} TL
-
-Güncel küresel piyasa koşullarını web'den araştır. Sonra 1.000.000 TL'yi şu varlıklar arasında dağıt:
-Altın, Gümüş, USD/TRY, BIST100, Bitcoin, Ethereum, Brent Petrol, Fon, S&P 500, Nasdaq, DXY, ABD Tahvil, Para Piyasası Fonu, TL Mevduat, Nakit
-
-SADECE JSON döndür:
-{
-  "reasoning": "Neden bu dağılımı seçtiğini 2 cümle açıkla (Türkçe)",
-  "positions": [
-    { "asset": "Altın", "allocation_pct": 35 },
-    { "asset": "Nakit", "allocation_pct": 65 }
-  ]
-}
-Toplam allocation_pct tam 100 olmalı.`;
-
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await resp.json();
-    const textBlocks = (data.content || []).filter(b => b.type === 'text');
-    let result = null;
-    for (let i = textBlocks.length - 1; i >= 0; i--) {
-      const match = textBlocks[i].text.match(/\{[\s\S]*\}/);
-      if (match) { try { result = JSON.parse(match[0]); break; } catch(e) {} }
-    }
-    if (!result) throw new Error('JSON bulunamadı');
+    const resp = await fetch('https://finansbot-production.up.railway.app/portfolio');
+    if (!resp.ok) throw new Error('Sunucu hatası: ' + resp.status);
+    const result = await resp.json();
+    if (!result.ok) throw new Error(result.error || 'Bilinmeyen hata');
 
     state.claude.cash = 0;
     state.claude.positions = [];
