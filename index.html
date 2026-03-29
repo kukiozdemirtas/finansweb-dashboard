@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finans Paneli</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b0f;
+  --bg2: #0e1218;
+  --bg3: #141a22;
+  --bg4: #1a2130;
+  --border: #1c2430;
+  --border2: #243040;
+  --green: #00d48a;
+  --green-d: rgba(0,212,138,0.1);
+  --amber: #f0a020;
+  --amber-d: rgba(240,160,32,0.1);
+  --red: #ff4060;
+  --red-d: rgba(255,64,96,0.1);
+  --blue: #3a9eff;
+  --blue-d: rgba(58,158,255,0.1);
+  --purple: #9b7fea;
+  --purple-d: rgba(155,127,234,0.1);
+  --text: #dce8f5;
+  --text2: #8a9ab5;
+  --text3: #4a5a70;
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--sans);
+  min-height: 100vh; position: relative;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.013) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.013) 1px, transparent 1px);
+  background-size: 32px 32px; pointer-events: none; z-index: 0;
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 80% 10%, rgba(0,212,138,0.04), transparent);
+  pointer-events: none; z-index: 0;
+}
+.wrap { position: relative; z-index: 1; max-width: 1160px; margin: 0 auto; padding: 20px 16px 48px; }
+
+/* HEADER */
+header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+.hd-left .eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--text3); text-transform: uppercase; }
+.hd-left h1 { font-family: var(--mono); font-size: 20px; color: var(--green); letter-spacing: -0.5px; margin-top: 4px; }
+.hd-left h1 span { color: var(--text2); }
+.hd-right { text-align: right; font-family: var(--mono); }
+#clock { font-size: 28px; font-weight: 700; letter-spacing: 2px; color: var(--text); }
+#datef { font-size: 10px; color: var(--text3); letter-spacing: 1px; margin-top: 2px; text-transform: uppercase; }
+
+/* TICKER */
+.ticker-wrap { margin-bottom: 18px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg2); }
+
+/* WORKFLOW */
+.workflow { display: flex; gap: 2px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+.wf { flex: 1; padding: 9px 10px; border-radius: 7px; text-align: center; cursor: pointer; transition: all .2s; }
+.wf.on { background: var(--green-d); border: 1px solid rgba(0,212,138,0.2); }
+.wf .lbl { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--text3); text-transform: uppercase; margin-bottom: 2px; }
+.wf.on .lbl { color: var(--green); }
+.wf .val { font-size: 12px; font-weight: 500; color: var(--text2); }
+.wf.on .val { color: var(--text); }
+
+/* GRIDS */
+.g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 10px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.g1 { margin-bottom: 10px; }
+
+/* CARD */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: border-color .2s; animation: fadeUp .35s ease both; }
+.card:hover { border-color: var(--border2); }
+@keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: none; } }
+.card:nth-child(2) { animation-delay: .05s; }
+.card:nth-child(3) { animation-delay: .1s; }
+
+.ch { display: flex; align-items: center; gap: 8px; margin-bottom: 13px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ct { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--text3); text-transform: uppercase; flex: 1; }
+.badge { font-family: var(--mono); font-size: 8px; padding: 2px 7px; border-radius: 20px; letter-spacing: 1px; }
+
+/* ASSETS */
+.assets { display: grid; grid-template-columns: repeat(6,1fr); gap: 6px; }
+.ast { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 6px; text-align: center; text-decoration: none; display: block; transition: all .15s; }
+.ast:hover { border-color: var(--border2); transform: translateY(-2px); }
+.ast-sym { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 1px; margin-bottom: 3px; }
+.ast-nm { font-size: 11px; font-weight: 500; color: var(--text2); }
+
+/* SITE LINKS */
+.slist { display: flex; flex-direction: column; gap: 4px; }
+.slink { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 7px; text-decoration: none; background: var(--bg3); border: 1px solid transparent; transition: all .15s; }
+.slink:hover { border-color: var(--border2); transform: translateX(3px); }
+.sico { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.snm { font-size: 12px; font-weight: 500; color: var(--text); }
+.sds { font-size: 10px; color: var(--text3); }
+.pri { font-family: var(--mono); font-size: 8px; padding: 2px 5px; border-radius: 3px; letter-spacing: 1px; flex-shrink: 0; }
+
+/* CHECKLIST */
+.clist { display: flex; flex-direction: column; gap: 5px; }
+.ci { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; background: var(--bg3); cursor: pointer; transition: all .15s; border: 1px solid transparent; }
+.ci.done { opacity: .45; background: var(--bg); }
+.ci.done .ct2 { text-decoration: line-through; color: var(--text3); }
+.cb { width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 9px; transition: all .15s; }
+.ci.done .cb { background: var(--green); border-color: var(--green); color: var(--bg); }
+.ct2 { font-size: 12px; color: var(--text2); flex: 1; }
+.ctag { font-family: var(--mono); font-size: 8px; padding: 2px 5px; border-radius: 3px; text-transform: uppercase; letter-spacing: 1px; }
+
+/* NOTES */
+textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text); font-family: var(--mono); font-size: 11px; resize: vertical; min-height: 90px; outline: none; transition: border-color .15s; line-height: 1.7; }
+textarea:focus { border-color: var(--border2); }
+textarea::placeholder { color: var(--text3); }
+
+/* BUTTONS */
+.btn { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; padding: 6px 12px; border-radius: 5px; cursor: pointer; text-transform: uppercase; border: none; transition: all .15s; }
+.btn-g { background: var(--green-d); border: 1px solid rgba(0,212,138,0.25); color: var(--green); }
+.btn-g:hover { background: rgba(0,212,138,0.18); }
+.btn-n { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); }
+.btn-n:hover { border-color: var(--border2); }
+
+/* NEWS ANALYSIS */
+.news-input-row { display: flex; gap: 8px; }
+.news-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; transition: border-color .15s; }
+.news-input:focus { border-color: var(--blue); }
+.news-input::placeholder { color: var(--text3); }
+
+.analyze-btn { background: var(--blue-d); border: 1px solid rgba(58,158,255,0.3); color: var(--blue); font-family: var(--mono); font-size: 10px; letter-spacing: 1px; padding: 0 18px; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: all .15s; white-space: nowrap; }
+.analyze-btn:hover { background: rgba(58,158,255,0.15); }
+.analyze-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.analysis-result { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: none; animation: fadeUp .3s ease both; margin-top: 10px; }
+.analysis-result.visible { display: block; }
+
+.ar-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.ar-tag { font-family: var(--mono); font-size: 8px; padding: 3px 8px; border-radius: 20px; letter-spacing: 1px; }
+.ar-news-q { font-size: 12px; color: var(--text3); font-family: var(--mono); border-left: 2px solid var(--border2); padding-left: 10px; margin-bottom: 12px; font-style: italic; line-height: 1.6; }
+
+.impact-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 12px; }
+.impact-card { background: var(--bg4); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.ic-label { font-family: var(--mono); font-size: 8px; letter-spacing: 1px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; }
+.ic-asset { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.ic-dir { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: 4px; letter-spacing: 1px; }
+.up { background: var(--green-d); color: var(--green); }
+.dn { background: var(--red-d); color: var(--red); }
+.nt { background: var(--amber-d); color: var(--amber); }
+.ic-why { font-size: 11px; color: var(--text2); margin-top: 6px; line-height: 1.5; }
+
+.ar-summary { font-size: 13px; color: var(--text2); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 12px; }
+.ar-summary strong { color: var(--text); }
+.ar-caution { margin-top: 10px; font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.5px; }
+
+/* LOADING BAR */
+.loading-bar { height: 2px; background: var(--bg4); border-radius: 2px; margin: 8px 0; overflow: hidden; display: none; }
+.loading-bar.active { display: block; }
+.loading-bar::after { content: ''; display: block; height: 100%; background: linear-gradient(90deg, transparent, var(--blue), transparent); animation: scan 1.2s ease-in-out infinite; }
+@keyframes scan { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+
+/* HISTORY */
+.news-history { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+.nh-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; cursor: pointer; transition: all .15s; }
+.nh-item:hover { border-color: var(--border2); }
+.nh-text { font-size: 12px; color: var(--text2); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nh-time { font-family: var(--mono); font-size: 9px; color: var(--text3); flex-shrink: 0; }
+
+/* SECTION LABEL */
+.sl { font-family: var(--mono); font-size: 8px; letter-spacing: 3px; color: var(--text3); text-transform: uppercase; margin: 18px 0 8px 2px; }
+
+/* COLOR UTILS */
+.dg { background: var(--green-d); } .da { background: var(--amber-d); } .dr { background: var(--red-d); } .db { background: var(--blue-d); } .dp { background: var(--purple-d); }
+.bdg { background: var(--green-d); color: var(--green); border: 1px solid rgba(0,212,138,0.2); }
+.bda { background: var(--amber-d); color: var(--amber); border: 1px solid rgba(240,160,32,0.2); }
+.bdr { background: var(--red-d); color: var(--red); border: 1px solid rgba(255,64,96,0.2); }
+.bdb { background: var(--blue-d); color: var(--blue); border: 1px solid rgba(58,158,255,0.2); }
+.bdp { background: var(--purple-d); color: var(--purple); border: 1px solid rgba(155,127,234,0.2); }
+.dotg { background: var(--green); } .dota { background: var(--amber); } .dotr { background: var(--red); } .dotb { background: var(--blue); } .dotp { background: var(--purple); }
+.p-c { background: rgba(255,64,96,.15); color: var(--red); }
+.p-h { background: rgba(240,160,32,.15); color: var(--amber); }
+.p-m { background: rgba(58,158,255,.15); color: var(--blue); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.live { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; margin-right: 5px; vertical-align: middle; }
+
+footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.ft { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 1px; }
+
+@media(max-width:768px) {
+  .g3,.g2 { grid-template-columns: 1fr; }
+  .assets { grid-template-columns: repeat(3,1fr); }
+  .impact-grid { grid-template-columns: 1fr 1fr; }
+  .workflow { flex-wrap: wrap; }
+  header { flex-direction: column; gap: 10px; }
+  .news-input-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="hd-left">
+    <div class="eyebrow">TÜRKİYE · FİNANS PANELİ</div>
+    <h1>// MARKET <span>DASHBOARD</span></h1>
+  </div>
+  <div class="hd-right">
+    <div id="clock">--:--:--</div>
+    <div id="datef">---</div>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="tradingview-widget-container">
+    <div class="tradingview-widget-container__widget"></div>
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+    {"symbols":[{"proName":"FX_IDC:USDTRY","title":"USD/TRY"},{"proName":"FX_IDC:EURTRY","title":"EUR/TRY"},{"proName":"TVC:GOLD","title":"Altın"},{"proName":"TVC:SILVER","title":"Gümüş"},{"proName":"BIST:XU100","title":"BIST100"},{"proName":"BINANCE:BTCUSDT","title":"Bitcoin"},{"proName":"TVC:USOIL","title":"Brent"}],"showSymbolLogo":false,"colorTheme":"dark","isTransparent":true,"displayMode":"adaptive","locale":"tr"}
+    </script>
+  </div>
+</div>
+
+<!-- WORKFLOW -->
+<div class="workflow" id="wfbar">
+  <div class="wf" onclick="setWf(this)"><div class="lbl">☀ Sabah</div><div class="val">Takvim + Haber</div></div>
+  <div class="wf" onclick="setWf(this)"><div class="lbl">⚡ Açılış</div><div class="val">Endeks + Kur</div></div>
+  <div class="wf" onclick="setWf(this)"><div class="lbl">☁ Gün İçi</div><div class="val">Şirket Haberleri</div></div>
+  <div class="wf" onclick="setWf(this)"><div class="lbl">🌙 Kapanış</div><div class="val">Değerlendirme</div></div>
+</div>
+
+<!-- ASSET QUICK -->
+<div class="sl">→ Varlık Takibi — TradingView</div>
+<div class="g1">
+  <div class="card">
+    <div class="ch"><div class="dot dota"></div><div class="ct">Hızlı Erişim</div><span class="badge bda">GRAFİK</span></div>
+    <div class="assets">
+      <a class="ast" href="https://tr.tradingview.com/symbols/USDTRY/" target="_blank"><div class="ast-sym">USD/TRY</div><div class="ast-nm">Dolar/TL</div></a>
+      <a class="ast" href="https://tr.tradingview.com/symbols/EURTRY/" target="_blank"><div class="ast-sym">EUR/TRY</div><div class="ast-nm">Euro/TL</div></a>
+      <a class="ast" href="https://tr.tradingview.com/symbols/XAUTRY/" target="_blank"><div class="ast-sym">XAU/TRY</div><div class="ast-nm">Altın/TL</div></a>
+      <a class="ast" href="https://tr.tradingview.com/symbols/BIST100/" target="_blank"><div class="ast-sym">BIST100</div><div class="ast-nm">Borsa İst.</div></a>
+      <a class="ast" href="https://tr.tradingview.com/symbols/XAGUSD/" target="_blank"><div class="ast-sym">XAG/USD</div><div class="ast-nm">Gümüş</div></a>
+      <a class="ast" href="https://tr.tradingview.com/symbols/BTCUSDT/" target="_blank"><div class="ast-sym">BTC/USDT</div><div class="ast-nm">Bitcoin</div></a>
+    </div>
+  </div>
+</div>
+
+<!-- NEWS ANALYSIS -->
+<div class="sl">→ Haber Etkisi — AI Analizi</div>
+<div class="g1">
+  <div class="card">
+    <div class="ch"><div class="dot dotb"></div><div class="ct">Haber Gir → Piyasa Etkisini Gör</div><span class="badge bdb">AI ANALİZ</span></div>
+
+    <div class="news-input-row">
+      <input class="news-input" id="newsInput" type="text"
+        placeholder="Örn: TCMB faizi 200 baz puan artırdı · Fed toplantısı bekleniyor · Enflasyon %60'a geriledi..."
+        onkeydown="if(event.key==='Enter') analyzeNews()"
+      />
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyzeNews()">Analiz Et →</button>
+    </div>
+
+    <div class="loading-bar" id="loadBar"></div>
+
+    <div class="analysis-result" id="analysisResult">
+      <div class="ar-header">
+        <span class="ar-tag bdb">ANALİZ</span>
+        <span class="ar-tag" id="arSentiment"></span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:auto;" id="arTime"></span>
+      </div>
+      <div class="ar-news-q" id="arQuote"></div>
+      <div class="impact-grid" id="impactGrid"></div>
+      <div class="ar-summary" id="arSummary"></div>
+      <div class="ar-caution">⚠ Bilgi amaçlıdır, yatırım tavsiyesi değildir. Korelasyon ≠ nedensellik.</div>
+    </div>
+
+    <div id="historyWrap" style="display:none; margin-top:12px;">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;">Son Analizler</div>
+      <div class="news-history" id="newsHistory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- KAYNAKLAR -->
+<div class="sl">→ Kaynaklar</div>
+<div class="g3">
+  <div class="card">
+    <div class="ch"><div class="dot dotr"></div><div class="ct">Resmi Kaynaklar</div><span class="badge bdr">KRİTİK</span></div>
+    <div class="slist">
+      <a class="slink" href="https://www.tcmb.gov.tr" target="_blank">
+        <div class="sico dr">🏦</div><div style="flex:1"><div class="snm">TCMB</div><div class="sds">Faiz, rezerv, enflasyon raporu</div></div><span class="pri p-c">ACİL</span>
+      </a>
+      <a class="slink" href="https://www.kap.org.tr" target="_blank">
+        <div class="sico dr">📋</div><div style="flex:1"><div class="snm">KAP</div><div class="sds">Özel durum açıklamaları</div></div><span class="pri p-c">ACİL</span>
+      </a>
+      <a class="slink" href="https://www.tuik.gov.tr" target="_blank">
+        <div class="sico dr">📊</div><div style="flex:1"><div class="snm">TÜİK</div><div class="sds">TÜFE, ÜFE, büyüme</div></div><span class="pri p-h">YÜKSEK</span>
+      </a>
+      <a class="slink" href="https://www.spk.gov.tr" target="_blank">
+        <div class="sico dr">⚖️</div><div style="flex:1"><div class="snm">SPK</div><div class="sds">Piyasa düzenlemeleri</div></div><span class="pri p-h">YÜKSEK</span>
+      </a>
+      <a class="slink" href="https://www.borsaistanbul.com" target="_blank">
+        <div class="sico dr">📈</div><div style="flex:1"><div class="snm">Borsa İstanbul</div><div class="sds">Endeks, duyuru</div></div><span class="pri p-h">YÜKSEK</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot dota"></div><div class="ct">Türkçe Haber</div><span class="badge bda">GÜNLÜK</span></div>
+    <div class="slist">
+      <a class="slink" href="https://www.bloomberght.com" target="_blank">
+        <div class="sico da">⚡</div><div style="flex:1"><div class="snm">Bloomberg HT</div><div class="sds">En hızlı Türkçe fin. haber</div></div><span class="pri p-c">ACİL</span>
+      </a>
+      <a class="slink" href="https://tr.investing.com/economic-calendar/" target="_blank">
+        <div class="sico da">📅</div><div style="flex:1"><div class="snm">Investing — Takvim</div><div class="sds">Günlük ekonomik takvim</div></div><span class="pri p-c">ACİL</span>
+      </a>
+      <a class="slink" href="https://www.ekonomim.com" target="_blank">
+        <div class="sico da">📰</div><div style="flex:1"><div class="snm">Ekonomim</div><div class="sds">Ekonomi & finans</div></div><span class="pri p-h">YÜKSEK</span>
+      </a>
+      <a class="slink" href="https://www.paraanaliz.com" target="_blank">
+        <div class="sico da">🔍</div><div style="flex:1"><div class="snm">Para Analiz</div><div class="sds">Piyasa analizi & yorum</div></div><span class="pri p-m">ORTA</span>
+      </a>
+      <a class="slink" href="https://www.dunya.com" target="_blank">
+        <div class="sico da">🌐</div><div style="flex:1"><div class="snm">Dünya Gazetesi</div><div class="sds">İş dünyası & ekonomi</div></div><span class="pri p-m">ORTA</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot dotb"></div><div class="ct">Küresel & Makro</div><span class="badge bdb">KÜRESEL</span></div>
+    <div class="slist">
+      <a class="slink" href="https://www.reuters.com/markets/" target="_blank">
+        <div class="sico db">📡</div><div style="flex:1"><div class="snm">Reuters Markets</div><div class="sds">Küresel piyasa haberleri</div></div><span class="pri p-c">ACİL</span>
+      </a>
+      <a class="slink" href="https://tradingeconomics.com/turkey/indicators" target="_blank">
+        <div class="sico db">📉</div><div style="flex:1"><div class="snm">Trading Economics</div><div class="sds">Türkiye makro göstergeler</div></div><span class="pri p-h">YÜKSEK</span>
+      </a>
+      <a class="slink" href="https://www.bloomberg.com/markets" target="_blank">
+        <div class="sico db">🌍</div><div style="flex:1"><div class="snm">Bloomberg Markets</div><div class="sds">Global piyasa verisi</div></div><span class="pri p-h">YÜKSEK</span>
+      </a>
+      <a class="slink" href="https://www.gold.org/goldhub/data" target="_blank">
+        <div class="sico db">🥇</div><div style="flex:1"><div class="snm">World Gold Council</div><div class="sds">Altın veri & araştırma</div></div><span class="pri p-m">ORTA</span>
+      </a>
+      <a class="slink" href="https://www.coingecko.com" target="_blank">
+        <div class="sico db">🔮</div><div style="flex:1"><div class="snm">CoinGecko</div><div class="sds">Kripto fiyat & veri</div></div><span class="pri p-m">ORTA</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKLIST + NOTLAR -->
+<div class="sl">→ Günlük Rutin</div>
+<div class="g2">
+  <div class="card">
+    <div class="ch"><div class="dot dotg"></div><div class="ct">Sabah Kontrol Listesi</div><span class="badge bdg">RUTİN</span></div>
+    <div class="clist" id="clist">
+      <div class="ci" onclick="tick(this)"><div class="cb"></div><span class="ct2">Ekonomik takvimi kontrol et</span><span class="ctag p-c">SAB</span></div>
+      <div class="ci" onclick="tick(this)"><div class="cb"></div><span class="ct2">BloombergHT manşetlerini tara</span><span class="ctag p-c">SAB</span></div>
+      <div class="ci" onclick="tick(this)"><div class="cb"></div><span class="ct2">USD/TRY açılış seviyesini not et</span><span class="ctag p-c">SAB</span></div>
+      <div class="ci" onclick="tick(this)"><div class="cb"></div><span class="ct2">KAP'ta yeni açıklama var mı?</span><span class="ctag p-h">SAB</span></div>
+      <div class="ci" onclick="tick(this)"><div class="cb"></div><span class="ct2">Reuters küresel haberleri</span><span class="ctag p-h">SAB</span></div>
+      <div class="ci" onclick="tick(this)"><div class="cb"></div><span class="ct2">BIST100 açılış yönünü izle</span><span class="ctag p-m">AÇ</span></div>
+      <div class="ci" onclick="tick(this)"><div class="cb"></div><span class="ct2">Altın — gecelik hareket?</span><span class="ctag p-m">AÇ</span></div>
+      <div class="ci" onclick="tick(this)"><div class="cb"></div><span class="ct2">Kapanış yönünü değerlendir</span><span class="ctag p-m">KAP</span></div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-n" onclick="resetList()">Listeyi Sıfırla</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div class="dot dotp"></div><div class="ct">Günlük Notlar</div><span class="badge bdp">SERBEST</span></div>
+    <textarea id="notes" placeholder="Korelasyon gözlemleri, sorular, trade fikirleri..."></textarea>
+    <div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
+      <button class="btn btn-g" onclick="saveNotes()">Kaydet</button>
+      <button class="btn btn-n" onclick="clearNotes()">Temizle</button>
+      <span id="smsg" style="font-family:var(--mono);font-size:9px;color:var(--green);opacity:0;transition:opacity .3s;"></span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="ft"><span class="live"></span>TÜRKİYE FİNANS PANELİ · KİŞİSEL KULLANIM</div>
+  <div class="ft">AI ANALİZ: CLAUDE SONNET</div>
+</footer>
+</div>
+
+<script>
+// CLOCK
+function tickClock() {
+  const n = new Date();
+  const days = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+  const mo = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+  document.getElementById('clock').textContent = n.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('datef').textContent = `${days[n.getDay()]} · ${n.getDate()} ${mo[n.getMonth()]} ${n.getFullYear()}`;
+}
+tickClock(); setInterval(tickClock, 1000);
+
+// WORKFLOW
+function setWf(el) { document.querySelectorAll('.wf').forEach(w=>w.classList.remove('on')); el.classList.add('on'); }
+(function(){
+  const h = new Date().getHours();
+  const idx = h < 10 ? 0 : h < 13 ? 1 : h < 17 ? 2 : 3;
+  document.querySelectorAll('.wf')[idx]?.classList.add('on');
+})();
+
+// CHECKLIST
+function tick(el) {
+  el.classList.toggle('done');
+  el.querySelector('.cb').textContent = el.classList.contains('done') ? '✓' : '';
+  localStorage.setItem('cl_st', JSON.stringify(Array.from(document.querySelectorAll('.ci')).map(i=>i.classList.contains('done'))));
+}
+function resetList() {
+  document.querySelectorAll('.ci').forEach(el=>{el.classList.remove('done');el.querySelector('.cb').textContent='';});
+  localStorage.removeItem('cl_st');
+}
+(function(){
+  const s = localStorage.getItem('cl_st');
+  if(!s) return;
+  JSON.parse(s).forEach((done,i)=>{
+    const el=document.querySelectorAll('.ci')[i];
+    if(el&&done){el.classList.add('done');el.querySelector('.cb').textContent='✓';}
+  });
+})();
+
+// NOTES
+const NK = 'notes_' + new Date().toDateString();
+document.getElementById('notes').value = localStorage.getItem(NK)||'';
+function saveNotes() {
+  localStorage.setItem(NK, document.getElementById('notes').value);
+  const m=document.getElementById('smsg'); m.textContent='✓ KAYDEDİLDİ'; m.style.opacity='1';
+  setTimeout(()=>m.style.opacity='0', 2000);
+}
+function clearNotes() { document.getElementById('notes').value=''; localStorage.removeItem(NK); }
+document.getElementById('notes').addEventListener('input',()=>{ clearTimeout(window._ns); window._ns=setTimeout(saveNotes,1500); });
+
+// NEWS HISTORY
+let hist = JSON.parse(localStorage.getItem('news_hist')||'[]');
+
+function renderHistory() {
+  if(!hist.length){document.getElementById('historyWrap').style.display='none';return;}
+  document.getElementById('historyWrap').style.display='block';
+  document.getElementById('newsHistory').innerHTML = [...hist].reverse().slice(0,5).map((h,i)=>
+    `<div class="nh-item" onclick="loadHist(${hist.length-1-i})">
+      <span style="font-size:11px">📌</span>
+      <span class="nh-text">${h.news}</span>
+      <span class="nh-time">${h.time}</span>
+    </div>`
+  ).join('');
+}
+
+function loadHist(idx) {
+  document.getElementById('newsInput').value = hist[idx].news;
+  renderResult(hist[idx]);
+}
+renderHistory();
+
+// ANALYSIS
+const SYS = `Sen Türkiye odaklı bir finansal piyasa analistisin. Kullanıcı sana bir haber veya gelişme yazacak.
+Bu haberin aşağıdaki varlık sınıflarına olası etkisini analiz et:
+USD/TRY, EUR/TRY, Altın (TRY), BIST100, Bankacılık hisseleri, Gümüş, Bitcoin/Kripto, Enerji/Brent
+
+SADECE geçerli JSON döndür, başka hiçbir şey yazma:
+{
+  "sentiment": "POZITIF" | "NEGATIF" | "KARMA" | "NÖTR",
+  "summary": "Haberin özeti ve genel piyasa yorumu (2-3 cümle, Türkçe)",
+  "impacts": [
+    { "asset": "USD/TRY", "direction": "UP" | "DOWN" | "NEUTRAL", "reason": "Kısa mekanizma açıklaması (1 cümle)" }
+  ],
+  "causation_note": "Bu ilişki gerçek nedensellik mi yoksa korelasyon mu? Sınırları açıkla (1-2 cümle)"
+}
+
+Her varlık için bir impact yaz. Gerçekçi ol: her haber her varlığı etkilemez, NEUTRAL kullanmaktan çekinme. Mekanizmayı açıkla, spekülatif fiyat tahmini yapma.`;
+
+async function analyzeNews() {
+  const news = document.getElementById('newsInput').value.trim();
+  if (!news) return;
+  const btn = document.getElementById('analyzeBtn');
+  const lb = document.getElementById('loadBar');
+  btn.disabled = true; btn.textContent = 'Analiz ediliyor...';
+  lb.classList.add('active');
+  document.getElementById('analysisResult').classList.remove('visible');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYS,
+        messages: [{ role: 'user', content: news }]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content?.[0]?.text || '';
+    let parsed;
+    try { parsed = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch(e) { throw new Error('Yanıt ayrıştırılamadı'); }
+
+    const now = new Date();
+    const item = { news, time: now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}), ...parsed };
+    hist.push(item);
+    if (hist.length > 10) hist = hist.slice(-10);
+    localStorage.setItem('news_hist', JSON.stringify(hist));
+    renderHistory();
+    renderResult(item);
+  } catch(err) {
+    const r = document.getElementById('analysisResult');
+    r.innerHTML = `<div style="color:var(--red);font-family:var(--mono);font-size:11px;">Hata: ${err.message}</div>`;
+    r.classList.add('visible');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analiz Et →';
+    lb.classList.remove('active');
+  }
+}
+
+function renderResult(item) {
+  const sc = {POZITIF:'bdg',NEGATIF:'bdr',KARMA:'bda',NÖTR:'bdb'}[item.sentiment]||'bdb';
+  const sl = {POZITIF:'↑ POZİTİF',NEGATIF:'↓ NEGATİF',KARMA:'⇄ KARMA',NÖTR:'— NÖTR'}[item.sentiment]||item.sentiment;
+  const sent = document.getElementById('arSentiment');
+  sent.className = `ar-tag ${sc}`; sent.textContent = sl;
+  document.getElementById('arTime').textContent = item.time||'';
+  document.getElementById('arQuote').textContent = `"${item.news}"`;
+
+  const dm = { UP:{cls:'up',icon:'↑',lbl:'YÜKSELİŞ'}, DOWN:{cls:'dn',icon:'↓',lbl:'DÜŞÜŞ'}, NEUTRAL:{cls:'nt',icon:'→',lbl:'NÖTR'} };
+  document.getElementById('impactGrid').innerHTML = (item.impacts||[]).map(imp=>{
+    const d = dm[imp.direction]||dm.NEUTRAL;
+    return `<div class="impact-card">
+      <div class="ic-label">Varlık</div>
+      <div class="ic-asset">${imp.asset}</div>
+      <span class="ic-dir ${d.cls}">${d.icon} ${d.lbl}</span>
+      <div class="ic-why">${imp.reason}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('arSummary').innerHTML =
+    `<strong>Genel Yorum:</strong> ${item.summary||''}<br><br>` +
+    `<strong>Korelasyon Notu:</strong> <span style="color:var(--amber)">${item.causation_note||''}</span>`;
+
+  document.getElementById('analysisResult').classList.add('visible');
+}
+</script>
+</body>
+</html>
