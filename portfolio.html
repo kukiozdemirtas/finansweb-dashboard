@@ -243,6 +243,12 @@ footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);displ
       <option value="Ethereum">Ethereum</option>
       <option value="Brent Petrol">Brent Petrol</option>
       <option value="Fon">Fon (Karma)</option>
+      <option value="S&P 500">S&amp;P 500</option>
+      <option value="Nasdaq">Nasdaq</option>
+      <option value="DXY">Dolar Endeksi (DXY)</option>
+      <option value="ABD Tahvil">ABD 10Y Tahvil</option>
+      <option value="Para Piyasası Fonu">Para Piyasası Fonu</option>
+      <option value="TL Mevduat">TL Mevduat Faizi</option>
     </select>
     <label>İşlem</label>
     <select id="tradeAction">
@@ -502,7 +508,7 @@ async function askClaudeToUpdate() {
 Güncel pozisyonlarım: ${currentPos} | Nakit: ${fmt(state.claude.cash)} TL
 
 Güncel küresel piyasa koşullarını web'den araştır. Sonra 1.000.000 TL'yi şu varlıklar arasında dağıt:
-Altın, Gümüş, USD/TRY, BIST100, Bitcoin, Ethereum, Brent Petrol, Fon, Nakit
+Altın, Gümüş, USD/TRY, BIST100, Bitcoin, Ethereum, Brent Petrol, Fon, S&P 500, Nasdaq, DXY, ABD Tahvil, Para Piyasası Fonu, TL Mevduat, Nakit
 
 SADECE JSON döndür:
 {
