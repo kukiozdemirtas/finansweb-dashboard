@@ -179,8 +179,10 @@ footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);displ
     <div id="claudePositions"></div>
     <div class="loading-bar" id="claudeLoading"></div>
     <div style="margin-top:4px;font-size:11px;color:var(--text3);font-style:italic;line-height:1.5" id="claudeReasoning"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn btn-b" onclick="askClaudeToUpdate()">Claude'u Güncelle</button>
+      <button class="btn" id="priceBtn" onclick="updatePrices()" style="background:var(--green-d);border-color:rgba(0,212,138,0.3);color:var(--green)">Fiyatları Güncelle</button>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text3);align-self:center" id="priceUpdateTime"></span>
     </div>
   </div>
 </div>
@@ -238,6 +240,7 @@ footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);displ
       <option value="Altın">Altın</option>
       <option value="Gümüş">Gümüş</option>
       <option value="USD/TRY">USD/TRY</option>
+      <option value="EUR/TRY">EUR/TRY</option>
       <option value="BIST100">BIST100</option>
       <option value="Bitcoin">Bitcoin</option>
       <option value="Ethereum">Ethereum</option>
@@ -482,7 +485,61 @@ function executeTrade() {
   }
 
   p.totalValue = p.cash + p.positions.reduce((s,x) => s + x.currentValue, 0);
-  saveState(); renderAll(); closeTradeModal();
+  saveState(); 
+async function updatePrices() {
+  const btn = document.getElementById('priceBtn');
+  btn.textContent = 'Güncelleniyor...';
+  btn.disabled = true;
+
+  try {
+    const resp = await fetch('https://finansbot-production.up.railway.app/prices');
+    if (!resp.ok) throw new Error('Sunucu hatası: ' + resp.status);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'Hata');
+
+    const priceMap = {};
+    for (const p of data.prices || []) {
+      priceMap[p.asset] = p.change_pct || 0;
+    }
+
+    // Update user positions
+    for (const pos of state.user.positions) {
+      const chg = priceMap[pos.asset];
+      if (chg !== undefined) {
+        pos.currentValue = pos.currentValue * (1 + chg / 100);
+        pos.currentPct = ((pos.currentValue - pos.invested) / pos.invested) * 100;
+      }
+    }
+    state.user.totalValue = state.user.cash + state.user.positions.reduce((s,x) => s + x.currentValue, 0);
+
+    // Update claude positions
+    for (const pos of state.claude.positions) {
+      const chg = priceMap[pos.asset];
+      if (chg !== undefined) {
+        pos.currentValue = pos.currentValue * (1 + chg / 100);
+        pos.currentPct = ((pos.currentValue - pos.invested) / pos.invested) * 100;
+      }
+    }
+    state.claude.totalValue = state.claude.cash + state.claude.positions.reduce((s,x) => s + x.currentValue, 0);
+
+    const timeStr = data.updated_at || nowTime();
+    document.getElementById('priceUpdateTime').textContent = 'Son güncelleme: ' + timeStr;
+
+    addLog('system', 'Fiyatlar güncellendi: ' + timeStr);
+    addPnlSnapshot('system', 'Fiyat güncellemesi');
+    saveState();
+    renderAll();
+
+  } catch(err) {
+    document.getElementById('priceUpdateTime').textContent = 'Hata: ' + err.message;
+    addLog('system', 'Fiyat güncelleme hatası: ' + err.message);
+  } finally {
+    btn.textContent = 'Fiyatları Güncelle';
+    btn.disabled = false;
+  }
+}
+
+renderAll(); closeTradeModal();
 }
 
 function resetUser() {
